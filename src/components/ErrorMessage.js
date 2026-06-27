@@ -1,11 +1,13 @@
 'use client';
 
+import { Camera, RotateCcw, TriangleAlert } from 'lucide-react';
+
 /**
  * ErrorMessage Component
- * 
+ *
  * Thông báo lỗi thân thiện bằng tiếng Việt cho người cao tuổi.
  * Icon to, chữ to, nút "Thử lại" rõ ràng.
- * 
+ *
  * @param {Object} props
  * @param {string} [props.message] - Thông báo lỗi tiếng Việt
  * @param {function} props.onRetry - Callback khi bấm "Thử lại"
@@ -20,7 +22,7 @@ export default function ErrorMessage({
     if (onRetry) {
       onRetry();
     } else {
-      console.log('[ErrorMessage] 🔄 User bấm THỬ LẠI');
+      console.log('[ErrorMessage] User bấm THỬ LẠI');
     }
   };
 
@@ -28,7 +30,7 @@ export default function ErrorMessage({
     if (onNewCapture) {
       onNewCapture();
     } else {
-      console.log('[ErrorMessage] 📷 User bấm CHỤP LẠI');
+      console.log('[ErrorMessage] User bấm CHỤP LẠI');
     }
   };
 
@@ -36,7 +38,7 @@ export default function ErrorMessage({
     <div className="error-state fade-in" role="alert">
       <div className="error-visual">
         <div className="error-icon-wrapper">
-          <span className="error-icon" aria-hidden="true">⚠️</span>
+          <TriangleAlert className="error-icon" size={48} strokeWidth={1.9} aria-hidden="true" />
         </div>
         <p className="error-message">{message}</p>
       </div>
@@ -47,8 +49,9 @@ export default function ErrorMessage({
           onClick={handleRetry}
           id="btn-retry"
           aria-label="Thử lại"
+          type="button"
         >
-          <span className="btn-emoji" aria-hidden="true">🔄</span>
+          <RotateCcw className="button-icon button-icon-primary" size={24} strokeWidth={2.3} aria-hidden="true" />
           THỬ LẠI
         </button>
 
@@ -57,8 +60,9 @@ export default function ErrorMessage({
           onClick={handleNewCapture}
           id="btn-error-new-capture"
           aria-label="Chụp lại ảnh"
+          type="button"
         >
-          <span className="btn-emoji" aria-hidden="true">📷</span>
+          <Camera className="button-icon" size={22} strokeWidth={2.3} aria-hidden="true" />
           CHỤP LẠI
         </button>
       </div>
@@ -88,12 +92,21 @@ export default function ErrorMessage({
           justify-content: center;
           background: var(--color-error-muted);
           border-radius: var(--radius-full);
-          border: 2px solid rgba(248, 113, 113, 0.2);
+          border: 2px solid rgba(185, 28, 28, 0.2);
         }
 
         .error-icon {
-          font-size: 48px;
-          line-height: 1;
+          color: var(--color-error);
+          filter: drop-shadow(0 4px 12px rgba(185, 28, 28, 0.12));
+        }
+
+        .button-icon {
+          flex-shrink: 0;
+          color: currentColor;
+        }
+
+        .button-icon-primary {
+          color: #fff;
         }
 
         .error-message {

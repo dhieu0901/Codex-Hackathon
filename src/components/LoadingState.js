@@ -1,11 +1,13 @@
 'use client';
 
+import { Volume2 } from 'lucide-react';
+
 /**
  * LoadingState Component
- * 
+ *
  * Trạng thái chờ khi đang phân tích văn bản.
  * Dùng shimmer animation nhẹ nhàng, không gây hoang mang cho người già.
- * 
+ *
  * @param {Object} props
  * @param {string} [props.message="Đang đọc giúp bạn..."] - Thông báo hiển thị
  */
@@ -14,7 +16,7 @@ export default function LoadingState({ message = "Đang đọc giúp bạn..." }
     <div className="loading-state fade-in" role="status" aria-live="polite">
       <div className="loading-visual">
         <div className="loading-icon-wrapper breathe">
-          <span className="loading-icon" aria-hidden="true">🔊</span>
+          <Volume2 className="loading-icon" size={48} strokeWidth={1.9} aria-hidden="true" />
         </div>
         <p className="loading-message">{message}</p>
         <div className="loading-dots" aria-hidden="true">
@@ -63,12 +65,12 @@ export default function LoadingState({ message = "Đang đọc giúp bạn..." }
           justify-content: center;
           background: var(--color-primary-muted);
           border-radius: var(--radius-full);
-          border: 2px solid rgba(96, 165, 250, 0.2);
+          border: 2px solid rgba(37, 99, 235, 0.2);
         }
 
         .loading-icon {
-          font-size: 48px;
-          line-height: 1;
+          color: var(--color-primary);
+          filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.14));
         }
 
         .loading-message {

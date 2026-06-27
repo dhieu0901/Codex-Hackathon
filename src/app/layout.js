@@ -1,3 +1,4 @@
+import { Search } from 'lucide-react';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
@@ -39,7 +40,10 @@ export default function RootLayout({ children }) {
       <body suppressHydrationWarning>
         <div className="app-container">
           <header className="app-header">
-            <h1 className="app-header-title">🔍 Soi Thuốc</h1>
+            <h1 className="app-header-title">
+              <Search className="app-header-icon" size={31} strokeWidth={2.4} aria-hidden="true" />
+              Soi Thuốc
+            </h1>
             <p className="app-header-subtitle">Trợ lý đọc hiểu cho người Việt</p>
           </header>
           <main className="screen">

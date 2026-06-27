@@ -1,5 +1,5 @@
 /* ============================================================
-   🎨 Đọc Giúp — Design System (Elderly-Optimized)
+   Đọc Giúp — Design System (Elderly-Optimized)
    Target: Người cao tuổi Việt Nam (60+)
    Rules: No text < 18px | Buttons ≥ 56px | WCAG AAA contrast
    ============================================================ */
@@ -527,9 +527,19 @@ a:hover {
 }
 
 .app-header-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   font-size: var(--font-size-heading);
   font-weight: 800;
   color: var(--color-text);
+}
+
+.app-header-icon {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  filter: drop-shadow(0 3px 8px rgba(37, 99, 235, 0.16));
 }
 
 .app-header-subtitle {

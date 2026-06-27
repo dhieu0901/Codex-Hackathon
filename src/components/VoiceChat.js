@@ -1,14 +1,15 @@
 'use client';
 
+import { MessageCircle, Mic, Send, Square } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 /**
  * VoiceChat Component
- * 
+ *
  * Giao diện hỏi đáp bằng giọng nói / text.
  * Chat bubbles: user bên phải (accent), assistant bên trái (surface).
  * Nút mic cực to với pulse animation khi đang xử lý.
- * 
+ *
  * @param {Object} props
  * @param {Array<{role: string, text: string}>} props.messages - Danh sách tin nhắn
  * @param {boolean} props.isProcessing - Đang ghi âm/xử lý
@@ -37,7 +38,7 @@ export default function VoiceChat({
     if (onSendMessage) {
       onSendMessage(text);
     } else {
-      console.log('[VoiceChat] 💬 User gửi:', text);
+      console.log('[VoiceChat] User gửi:', text);
     }
     setInputText('');
   };
@@ -53,13 +54,16 @@ export default function VoiceChat({
     if (onMicPress) {
       onMicPress();
     } else {
-      console.log('[VoiceChat] 🎤 Mic pressed — waiting for speech wiring');
+      console.log('[VoiceChat] Mic pressed — waiting for speech wiring');
     }
   };
 
   return (
     <div className="voice-chat fade-in-up">
-      <h3 className="voice-chat-title">💬 Hỏi thêm về thông tin</h3>
+      <h3 className="voice-chat-title">
+        <MessageCircle className="voice-chat-title-icon" size={23} strokeWidth={2.2} aria-hidden="true" />
+        Hỏi thêm về thông tin
+      </h3>
 
       {/* ═══ Chat Messages ═══ */}
       {messages.length > 0 && (
@@ -114,8 +118,11 @@ export default function VoiceChat({
           disabled={isProcessing}
           id="btn-mic"
           aria-label={isProcessing ? 'Đang ghi âm...' : 'Nhấn để hỏi bằng giọng nói'}
+          type="button"
         >
-          {isProcessing ? '⏹️' : '🎤'}
+          {isProcessing
+            ? <Square className="input-action-icon" size={22} strokeWidth={2.4} aria-hidden="true" />
+            : <Mic className="input-action-icon" size={24} strokeWidth={2.4} aria-hidden="true" />}
         </button>
 
         <button
@@ -124,8 +131,9 @@ export default function VoiceChat({
           disabled={!inputText.trim() || isProcessing}
           id="btn-send"
           aria-label="Gửi câu hỏi"
+          type="button"
         >
-          📨
+          <Send className="input-action-icon" size={22} strokeWidth={2.4} aria-hidden="true" />
         </button>
       </div>
 
@@ -140,9 +148,18 @@ export default function VoiceChat({
         }
 
         .voice-chat-title {
+          display: flex;
+          align-items: center;
+          gap: 10px;
           font-size: var(--font-size-body);
           font-weight: 700;
           color: var(--color-text);
+          padding: 0 var(--space-md);
+        }
+
+        .voice-chat-title-icon {
+          flex-shrink: 0;
+          color: var(--color-primary);
         }
 
         /* ── Chat Messages ── */
@@ -193,6 +210,11 @@ export default function VoiceChat({
           justify-content: center;
         }
 
+        .input-action-icon {
+          flex-shrink: 0;
+          color: currentColor;
+        }
+
         /* ── Mic Button ── */
         .btn-mic {
           width: 52px;
@@ -205,7 +227,6 @@ export default function VoiceChat({
           color: #fff;
           border: 3px solid rgba(37, 99, 235, 0.22);
           box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18);
-          font-size: 24px;
           transition: all var(--transition-fast);
         }
 
@@ -240,7 +261,6 @@ export default function VoiceChat({
           flex-shrink: 0;
           padding: 0;
           border-radius: 50%;
-          font-size: 24px;
         }
       `}</style>
     </div>

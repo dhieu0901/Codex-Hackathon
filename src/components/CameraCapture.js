@@ -1,5 +1,6 @@
 'use client';
 
+import { BookOpen, Camera, CheckCircle2, Image as ImageIcon } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 
 /**
@@ -54,7 +55,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
 
   const handleReadRequest = () => {
     if (selectedFile && onCapture) {
-      console.log('[CameraCapture] 📖 User bấm ĐỌC GIÚP TÔI — gửi file:', selectedFile.name, `(${(selectedFile.size / 1024).toFixed(0)}KB)`);
+      console.log('[CameraCapture] User bấm ĐỌC GIÚP TÔI — gửi file:', selectedFile.name, `(${(selectedFile.size / 1024).toFixed(0)}KB)`);
       onCapture(selectedFile);
     }
   };
@@ -103,7 +104,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
         <div className="camera-idle">
           <div className="camera-illustration">
             <div className="camera-icon-wrapper breathe">
-              <span className="camera-icon" role="img" aria-hidden="true">📷</span>
+              <Camera className="camera-icon" size={56} strokeWidth={1.8} aria-hidden="true" />
             </div>
             <p className="camera-hint">
               Chụp ảnh thông tin bạn muốn đọc
@@ -123,7 +124,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
             aria-controls="image-source-options"
             type="button"
           >
-            <span className="btn-emoji" aria-hidden="true">📷</span>
+            <Camera className="button-icon button-icon-primary" size={24} strokeWidth={2.4} aria-hidden="true" />
             GỬI ẢNH
           </button>
 
@@ -135,7 +136,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
                 disabled={disabled}
                 type="button"
               >
-                <span className="btn-emoji" aria-hidden="true">📷</span>
+                <Camera className="button-icon" size={22} strokeWidth={2.3} aria-hidden="true" />
                 CHỤP ẢNH
               </button>
               <button
@@ -144,7 +145,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
                 disabled={disabled}
                 type="button"
               >
-                <span className="btn-emoji" aria-hidden="true">🖼️</span>
+                <ImageIcon className="button-icon" size={22} strokeWidth={2.3} aria-hidden="true" />
                 TẢI ẢNH LÊN
               </button>
             </div>
@@ -160,7 +161,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
               className="image-preview"
             />
             <div className="preview-overlay">
-              <span className="preview-check">✅</span>
+              <CheckCircle2 className="preview-check" size={24} strokeWidth={2.4} aria-hidden="true" />
             </div>
           </div>
 
@@ -177,7 +178,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
               aria-label="Đọc giúp tôi"
               type="button"
             >
-              <span className="btn-emoji" aria-hidden="true">📖</span>
+              <BookOpen className="button-icon button-icon-primary" size={24} strokeWidth={2.3} aria-hidden="true" />
               ĐỌC GIÚP TÔI
             </button>
 
@@ -189,7 +190,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
               aria-label="Chụp lại"
               type="button"
             >
-              <span className="btn-emoji" aria-hidden="true">📷</span>
+              <Camera className="button-icon" size={22} strokeWidth={2.3} aria-hidden="true" />
               CHỤP LẠI
             </button>
           </div>
@@ -232,8 +233,17 @@ export default function CameraCapture({ onCapture, disabled = false }) {
         }
 
         .camera-icon {
-          font-size: 56px;
-          line-height: 1;
+          color: var(--color-primary);
+          filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.14));
+        }
+
+        .button-icon {
+          flex-shrink: 0;
+          color: currentColor;
+        }
+
+        .button-icon-primary {
+          color: #fff;
         }
 
         .camera-hint {
@@ -302,7 +312,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
         }
 
         .preview-check {
-          font-size: 22px;
+          color: #bbf7d0;
         }
 
         .preview-prompt {

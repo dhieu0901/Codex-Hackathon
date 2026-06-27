@@ -1,5 +1,20 @@
 'use client';
 
+import {
+  Camera,
+  ChevronDown,
+  ChevronUp,
+  CircleCheck,
+  ClipboardList,
+  FilePenLine,
+  FileText,
+  Lightbulb,
+  ListChecks,
+  Pill,
+  ReceiptText,
+  Stethoscope,
+  Volume2,
+} from 'lucide-react';
 import { useState } from 'react';
 
 const DEFAULT_RESULT_DATA = {
@@ -13,18 +28,18 @@ const DEFAULT_RESULT_DATA = {
  * Type → Badge config mapping
  */
 const TYPE_CONFIG = {
-  'thuốc':    { emoji: '💊', label: 'Thuốc',    className: 'badge-medicine' },
-  'hóa đơn':  { emoji: '🧾', label: 'Hóa đơn',  className: 'badge-bill' },
-  'công văn':  { emoji: '📄', label: 'Công văn',  className: 'badge-document' },
-  'biểu mẫu':  { emoji: '📋', label: 'Biểu mẫu', className: 'badge-form' },
-  'khác':     { emoji: '📝', label: 'Khác',     className: 'badge-other' },
+  'thuốc':     { Icon: Pill,          label: 'Thuốc',     className: 'badge-medicine' },
+  'hóa đơn':   { Icon: ReceiptText,   label: 'Hóa đơn',   className: 'badge-bill' },
+  'công văn':  { Icon: FileText,      label: 'Công văn',  className: 'badge-document' },
+  'biểu mẫu':  { Icon: ClipboardList, label: 'Biểu mẫu',  className: 'badge-form' },
+  'khác':      { Icon: FilePenLine,   label: 'Khác',      className: 'badge-other' },
 };
 
 /**
  * ResultDisplay Component
- * 
+ *
  * Hiển thị kết quả phân tích văn bản với chữ to, rõ ràng.
- * 
+ *
  * @param {Object} props
  * @param {string} props.rawText - Văn bản gốc. Person C map từ API raw_text.
  * @param {string} props.type - Loại văn bản (thuốc/hóa đơn/công văn/biểu mẫu/khác)
@@ -43,6 +58,7 @@ export default function ResultDisplay({
 }) {
   const [isRawTextOpen, setIsRawTextOpen] = useState(false);
   const typeConfig = TYPE_CONFIG[type] || TYPE_CONFIG['khác'];
+  const TypeIcon = typeConfig.Icon;
   const visibleKeyPoints = Array.isArray(keyPoints)
     ? keyPoints
         .map((point) => (typeof point === 'string' ? point.trim() : String(point || '').trim()))
@@ -53,7 +69,7 @@ export default function ResultDisplay({
     if (onListenAgain) {
       onListenAgain();
     } else {
-      console.log('[ResultDisplay] 🔊 NGHE LẠI — explanation:', explanation);
+      console.log('[ResultDisplay] NGHE LẠI — explanation:', explanation);
     }
   };
 
@@ -61,7 +77,7 @@ export default function ResultDisplay({
     if (onNewCapture) {
       onNewCapture();
     } else {
-      console.log('[ResultDisplay] 📷 CHỤP MỚI');
+      console.log('[ResultDisplay] CHỤP MỚI');
     }
   };
 
@@ -70,14 +86,17 @@ export default function ResultDisplay({
       {/* ═══ Badge loại văn bản ═══ */}
       <div className="result-header">
         <span className={`badge ${typeConfig.className}`}>
-          <span aria-hidden="true">{typeConfig.emoji}</span>
+          <TypeIcon className="type-icon" size={22} strokeWidth={2.2} aria-hidden="true" />
           {typeConfig.label}
         </span>
       </div>
 
       {/* ═══ Giải thích đơn giản — text cực to ═══ */}
       <div className="card-gradient result-explanation-card">
-        <h2 className="result-explanation-label">💡 Nội dung chính</h2>
+        <h2 className="result-explanation-label">
+          <Lightbulb className="section-icon section-icon-accent" size={22} strokeWidth={2.2} aria-hidden="true" />
+          Nội dung chính
+        </h2>
         <p className="result-explanation-text">
           {explanation}
         </p>
@@ -86,11 +105,14 @@ export default function ResultDisplay({
       {/* ═══ Key Points — bullet points rõ ràng ═══ */}
       {keyPoints && keyPoints.length > 0 && visibleKeyPoints.length > 0 && (
         <div className="result-keypoints section-gap">
-          <h3 className="result-section-title">📌 Ý quan trọng</h3>
+          <h3 className="result-section-title">
+            <ListChecks className="section-icon" size={23} strokeWidth={2.3} aria-hidden="true" />
+            Ý quan trọng
+          </h3>
           <ul className="key-points">
             {visibleKeyPoints.map((point, index) => (
               <li key={index} className="key-point-item">
-                <span className="key-point-icon" aria-hidden="true">✅</span>
+                <CircleCheck className="key-point-icon" size={23} strokeWidth={2.4} aria-hidden="true" />
                 <span>{point}</span>
               </li>
             ))}
@@ -101,7 +123,7 @@ export default function ResultDisplay({
       {/* ═══ Disclaimer thuốc ═══ */}
       {type === 'thuốc' && (
         <div className="disclaimer fade-in">
-          <span className="disclaimer-icon" aria-hidden="true">⚕️</span>
+          <Stethoscope className="disclaimer-icon" size={24} strokeWidth={2.2} aria-hidden="true" />
           <span>Nếu chưa chắc, hãy hỏi lại bác sĩ hoặc dược sĩ nhé.</span>
         </div>
       )}
@@ -114,10 +136,16 @@ export default function ResultDisplay({
           aria-expanded={isRawTextOpen}
           aria-controls="raw-text-content"
           id="btn-toggle-raw"
+          type="button"
         >
-          <span>📝 Xem văn bản gốc</span>
+          <span className="accordion-label">
+            <FileText className="accordion-label-icon" size={22} strokeWidth={2.1} aria-hidden="true" />
+            Xem văn bản gốc
+          </span>
           <span className="accordion-icon" aria-hidden="true">
-            {isRawTextOpen ? '▲' : '▼'}
+            {isRawTextOpen
+              ? <ChevronUp size={24} strokeWidth={2.4} />
+              : <ChevronDown size={24} strokeWidth={2.4} />}
           </span>
         </button>
         <div
@@ -139,8 +167,9 @@ export default function ResultDisplay({
           onClick={handleListenAgain}
           id="btn-listen-again"
           aria-label="Nghe lại nội dung"
+          type="button"
         >
-          <span className="btn-emoji" aria-hidden="true">🔊</span>
+          <Volume2 className="button-icon button-icon-primary" size={25} strokeWidth={2.3} aria-hidden="true" />
           NGHE LẠI
         </button>
 
@@ -149,8 +178,9 @@ export default function ResultDisplay({
           onClick={handleNewCapture}
           id="btn-new-capture"
           aria-label="Chụp ảnh mới"
+          type="button"
         >
-          <span className="btn-emoji" aria-hidden="true">📷</span>
+          <Camera className="button-icon" size={22} strokeWidth={2.3} aria-hidden="true" />
           CHỤP MỚI
         </button>
       </div>
@@ -169,15 +199,30 @@ export default function ResultDisplay({
           gap: var(--space-sm);
         }
 
+        .type-icon,
+        .section-icon,
+        .accordion-label-icon,
+        .button-icon {
+          flex-shrink: 0;
+          color: currentColor;
+        }
+
         .result-explanation-card {
           margin-top: var(--space-xs);
         }
 
         .result-explanation-label {
+          display: flex;
+          align-items: center;
+          gap: 10px;
           font-size: var(--font-size-body);
           font-weight: 600;
           color: var(--color-text-muted);
           margin-bottom: var(--space-sm);
+        }
+
+        .section-icon-accent {
+          color: var(--color-accent);
         }
 
         .result-explanation-text {
@@ -188,10 +233,17 @@ export default function ResultDisplay({
         }
 
         .result-section-title {
+          display: flex;
+          align-items: center;
+          gap: 10px;
           font-size: var(--font-size-body);
           font-weight: 700;
           color: var(--color-text);
           margin-bottom: var(--space-sm);
+        }
+
+        .result-section-title .section-icon {
+          color: var(--color-primary);
         }
 
         .key-points {
@@ -213,6 +265,12 @@ export default function ResultDisplay({
           margin-bottom: 0;
         }
 
+        .key-point-icon {
+          flex-shrink: 0;
+          margin-top: 1px;
+          color: #15803d;
+        }
+
         .disclaimer {
           background: var(--color-warning-muted);
           color: #9a3412;
@@ -221,10 +279,34 @@ export default function ResultDisplay({
           line-height: 1.6;
         }
 
+        .disclaimer-icon {
+          flex-shrink: 0;
+          margin-top: 2px;
+          color: #ea580c;
+        }
+
+        .accordion-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+        }
+
+        .accordion-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--color-text-secondary);
+        }
+
         .accordion-body {
           font-size: var(--font-size-body);
           color: var(--color-text-secondary);
           line-height: 1.6;
+        }
+
+        .button-icon-primary {
+          color: #fff;
         }
       `}</style>
     </div>
