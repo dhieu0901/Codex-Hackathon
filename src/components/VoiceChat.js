@@ -3,14 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 
 /**
- * Mock data — dùng test giao diện ngay
- */
-const mockChatMessages = [
-  { role: "user", text: "Thuốc này uống lúc bụng đói được không?" },
-  { role: "assistant", text: "Dạ không ạ. Tờ giấy ghi là phải uống sau khi ăn. Bác nhớ ăn no rồi mới uống nhé." }
-];
-
-/**
  * VoiceChat Component
  * 
  * Giao diện hỏi đáp bằng giọng nói / text.
@@ -21,11 +13,13 @@ const mockChatMessages = [
  * @param {Array<{role: string, text: string}>} props.messages - Danh sách tin nhắn
  * @param {boolean} props.isProcessing - Đang ghi âm/xử lý
  * @param {function} props.onSendMessage - Callback gửi tin nhắn (text)
+ * @param {function} props.onMicPress - Callback khi người dùng bấm nút micro
  */
 export default function VoiceChat({
-  messages = mockChatMessages,
+  messages = [],
   isProcessing = false,
   onSendMessage,
+  onMicPress,
 }) {
   const [inputText, setInputText] = useState('');
   const chatEndRef = useRef(null);
@@ -56,12 +50,10 @@ export default function VoiceChat({
   };
 
   const handleMicPress = () => {
-    if (onSendMessage) {
-      // Person C sẽ hook startListening() vào đây
-      console.log('[VoiceChat] 🎤 Mic pressed — Person C sẽ wire speech.startListening()');
-      onSendMessage('__MIC_PRESSED__');
+    if (onMicPress) {
+      onMicPress();
     } else {
-      console.log('[VoiceChat] 🎤 Mic pressed (mock)');
+      console.log('[VoiceChat] 🎤 Mic pressed — waiting for speech wiring');
     }
   };
 
@@ -211,12 +203,12 @@ export default function VoiceChat({
 
         .voice-chat-input {
           flex: 1;
-          min-height: 48px;
+          min-height: var(--btn-min-height);
         }
 
         .btn-send {
           width: 56px;
-          min-height: 48px;
+          min-height: var(--btn-min-height);
           padding: 0;
           font-size: 24px;
           flex-shrink: 0;

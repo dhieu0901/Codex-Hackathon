@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 /**
  * CameraCapture Component
@@ -9,13 +9,22 @@ import { useState, useRef } from 'react';
  * Sử dụng <input type="file" capture="environment"> để mở camera native.
  * 
  * @param {Object} props
- * @param {function} props.onCapture - Callback nhận file khi user bấm "Đọc Giúp Tôi"
+ * @param {function} props.onCapture - Callback nhận File khi user bấm "Đọc Giúp Tôi".
+ * Person C sẽ convert File thành data URL/base64 rồi gửi API body { image }.
  * @param {boolean} [props.disabled=false] - Disable interactions
  */
 export default function CameraCapture({ onCapture, disabled = false }) {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -40,10 +49,6 @@ export default function CameraCapture({ onCapture, disabled = false }) {
   };
 
   const handleRetake = () => {
-    // Cleanup preview URL
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
     setPreviewUrl(null);
     setSelectedFile(null);
     // Reset input value để có thể chọn lại cùng file

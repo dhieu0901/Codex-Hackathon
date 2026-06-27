@@ -1,15 +1,23 @@
+import { Inter } from 'next/font/google';
 import './globals.css';
+
+const inter = Inter({
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#0a0a14',
+};
 
 export const metadata = {
   title: 'Đọc Giúp — Trợ lý đọc hiểu văn bản',
   description: 'Ứng dụng AI giúp người cao tuổi Việt Nam đọc và hiểu văn bản: nhãn thuốc, hóa đơn, giấy tờ. Chỉ cần chụp ảnh, AI sẽ đọc giúp bạn.',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
-  themeColor: '#0a0a14',
   manifest: '/manifest.json',
   icons: {
     icon: '/icons/icon-192.png',
@@ -24,13 +32,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="vi">
+    <html lang="vi" className={inter.variable} suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="format-detection" content="telephone=no" />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <div className="app-container">
           <header className="app-header">
             <h1 className="app-header-title">📖 Đọc Giúp</h1>

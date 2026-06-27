@@ -6,130 +6,170 @@ import ResultDisplay from '../components/ResultDisplay';
 import LoadingState from '../components/LoadingState';
 import ErrorMessage from '../components/ErrorMessage';
 import VoiceChat from '../components/VoiceChat';
+import { fileToDataUrl } from '../lib/imageUtils';
 
-/**
- * Demo Page — Person B preview tất cả component
- * Person C sẽ thay thế bằng page.js thật có state machine + API wiring
- */
+const INITIAL_ERROR_MESSAGE = 'Xin lỗi, tôi chưa đọc được ảnh này. Bạn thử chụp lại rõ hơn nhé?';
 
-const mockResultData = {
-  rawText: "Paracetamol 500mg. Uống 2 viên × 3 lần/ngày sau ăn.",
-  type: "thuốc",
-  explanation: "Mỗi ngày uống 3 lần, mỗi lần 2 viên. Uống sau khi ăn cơm xong.",
-  keyPoints: ["Mỗi lần uống 2 viên", "Ngày uống 3 lần", "Uống sau bữa ăn"]
-};
+function normalizeUnderstandResult(data) {
+  return {
+    rawText: typeof data?.raw_text === 'string' ? data.raw_text : '',
+    type: typeof data?.type === 'string' ? data.type : 'khác',
+    explanation:
+      typeof data?.explanation === 'string' && data.explanation.trim()
+        ? data.explanation
+        : 'Tôi chưa đọc rõ nội dung trong ảnh. Bạn thử chụp lại gần và sáng hơn nhé.',
+    keyPoints: Array.isArray(data?.key_points) ? data.key_points : [],
+  };
+}
 
-const mockChatMessages = [
-  { role: "user", text: "Thuốc này uống lúc bụng đói được không?" },
-  { role: "assistant", text: "Dạ không ạ. Tờ giấy ghi là phải uống sau khi ăn. Bác nhớ ăn no rồi mới uống nhé." }
-];
+async function readErrorMessage(response, fallbackMessage) {
+  try {
+    const data = await response.json();
+    return data?.error || fallbackMessage;
+  } catch {
+    return fallbackMessage;
+  }
+}
 
 export default function Home() {
-  // Simulated screens: 'camera' | 'loading' | 'result' | 'error'
   const [screen, setScreen] = useState('camera');
-  const [chatMessages, setChatMessages] = useState(mockChatMessages);
+  const [lastFile, setLastFile] = useState(null);
+  const [result, setResult] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(INITIAL_ERROR_MESSAGE);
+  const [isAsking, setIsAsking] = useState(false);
+
+  const understandFile = async (file) => {
+    if (!file) {
+      setErrorMessage('Bạn hãy chụp hoặc chọn một ảnh trước nhé.');
+      setScreen('error');
+      return;
+    }
+
+    setLastFile(file);
+    setScreen('loading');
+    setErrorMessage(INITIAL_ERROR_MESSAGE);
+    setChatMessages([]);
+
+    try {
+      const image = await fileToDataUrl(file);
+      const response = await fetch('/api/understand', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response, INITIAL_ERROR_MESSAGE));
+      }
+
+      const data = await response.json();
+      setResult(normalizeUnderstandResult(data));
+      setScreen('result');
+    } catch (error) {
+      setErrorMessage(error?.message || INITIAL_ERROR_MESSAGE);
+      setScreen('error');
+    }
+  };
 
   const handleCapture = (file) => {
-    console.log('[Page] 📸 File captured:', file.name);
-    setScreen('loading');
-    // Giả lập API call
-    setTimeout(() => setScreen('result'), 2000);
+    void understandFile(file);
   };
 
   const handleNewCapture = () => {
     setScreen('camera');
+    setLastFile(null);
+    setResult(null);
     setChatMessages([]);
+    setErrorMessage(INITIAL_ERROR_MESSAGE);
   };
 
   const handleRetry = () => {
-    setScreen('loading');
-    setTimeout(() => setScreen('result'), 2000);
+    void understandFile(lastFile);
   };
 
   const handleListenAgain = () => {
-    console.log('[Page] 🔊 Đọc lại explanation');
+    console.log('[Page] Listen again:', result?.explanation || '');
   };
 
-  const handleSendMessage = (text) => {
-    console.log('[Page] 💬 Question:', text);
-    setChatMessages(prev => [...prev, { role: 'user', text }]);
-    // Giả lập response
-    setTimeout(() => {
-      setChatMessages(prev => [
+  const handleSendMessage = async (text) => {
+    const question = text.trim();
+    if (!question || isAsking) return;
+
+    setChatMessages((prev) => [...prev, { role: 'user', text: question }]);
+    setIsAsking(true);
+
+    try {
+      const response = await fetch('/api/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question,
+          rawText: result?.rawText || '',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response, 'Tôi chưa trả lời được câu hỏi này.'));
+      }
+
+      const data = await response.json();
+      setChatMessages((prev) => [
         ...prev,
-        { role: 'assistant', text: 'Dạ, theo tờ giấy thì bác nên uống sau bữa ăn ạ.' }
+        {
+          role: 'assistant',
+          text: data?.answer || 'Tôi chưa trả lời được câu hỏi này. Bạn hỏi lại ngắn hơn nhé.',
+        },
       ]);
-    }, 1500);
+    } catch (error) {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: error?.message || 'Có lỗi khi trả lời. Bạn thử hỏi lại giúp tôi nhé.',
+        },
+      ]);
+    } finally {
+      setIsAsking(false);
+    }
+  };
+
+  const handleMicPress = () => {
+    console.log('[Page] Mic pressed - Person C will wire speech.startListening() here');
   };
 
   return (
     <>
-      {screen === 'camera' && (
-        <CameraCapture onCapture={handleCapture} />
-      )}
+      {screen === 'camera' && <CameraCapture onCapture={handleCapture} />}
 
-      {screen === 'loading' && (
-        <LoadingState />
-      )}
+      {screen === 'loading' && <LoadingState message="Đang đọc ảnh bằng AI..." />}
 
       {screen === 'error' && (
         <ErrorMessage
-          message="Xin lỗi, tôi không đọc được. Bạn thử chụp lại rõ hơn nhé?"
+          message={errorMessage}
           onRetry={handleRetry}
           onNewCapture={handleNewCapture}
         />
       )}
 
-      {screen === 'result' && (
+      {screen === 'result' && result && (
         <>
           <ResultDisplay
-            rawText={mockResultData.rawText}
-            type={mockResultData.type}
-            explanation={mockResultData.explanation}
-            keyPoints={mockResultData.keyPoints}
+            rawText={result.rawText}
+            type={result.type}
+            explanation={result.explanation}
+            keyPoints={result.keyPoints}
             onListenAgain={handleListenAgain}
             onNewCapture={handleNewCapture}
           />
           <VoiceChat
             messages={chatMessages}
-            isProcessing={false}
+            isProcessing={isAsking}
             onSendMessage={handleSendMessage}
+            onMicPress={handleMicPress}
           />
         </>
       )}
-
-      {/* ── Debug Navigation (Person B preview) ── */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        display: 'flex',
-        gap: '4px',
-        padding: '8px',
-        background: 'rgba(0,0,0,0.8)',
-        backdropFilter: 'blur(8px)',
-        zIndex: 1000,
-        justifyContent: 'center',
-      }}>
-        {['camera', 'loading', 'result', 'error'].map(s => (
-          <button
-            key={s}
-            onClick={() => setScreen(s)}
-            style={{
-              padding: '8px 12px',
-              fontSize: '14px',
-              background: screen === s ? '#60a5fa' : '#333',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
     </>
   );
 }

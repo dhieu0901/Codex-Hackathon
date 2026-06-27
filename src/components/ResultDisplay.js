@@ -2,14 +2,11 @@
 
 import { useState } from 'react';
 
-/**
- * Mock data — dùng test hiển thị ngay khi chưa có API
- */
-const mockResultData = {
-  rawText: "Paracetamol 500mg. Uống 2 viên × 3 lần/ngày sau ăn.",
-  type: "thuốc",
-  explanation: "Mỗi ngày uống 3 lần, mỗi lần 2 viên. Uống sau khi ăn cơm xong.",
-  keyPoints: ["Mỗi lần uống 2 viên", "Ngày uống 3 lần", "Uống sau bữa ăn"]
+const DEFAULT_RESULT_DATA = {
+  rawText: "",
+  type: "khác",
+  explanation: "Tôi chưa có nội dung để hiển thị.",
+  keyPoints: []
 };
 
 /**
@@ -29,18 +26,18 @@ const TYPE_CONFIG = {
  * Hiển thị kết quả phân tích văn bản với chữ to, rõ ràng.
  * 
  * @param {Object} props
- * @param {string} props.rawText - Văn bản gốc
+ * @param {string} props.rawText - Văn bản gốc. Person C map từ API raw_text.
  * @param {string} props.type - Loại văn bản (thuốc/hóa đơn/công văn/biểu mẫu/khác)
  * @param {string} props.explanation - Giải thích đơn giản
- * @param {string[]} props.keyPoints - Các ý chính
+ * @param {string[]} props.keyPoints - Các ý chính. Person C map từ API key_points.
  * @param {function} props.onListenAgain - Callback khi bấm "Nghe lại"
  * @param {function} props.onNewCapture - Callback khi bấm "Chụp mới"
  */
 export default function ResultDisplay({
-  rawText = mockResultData.rawText,
-  type = mockResultData.type,
-  explanation = mockResultData.explanation,
-  keyPoints = mockResultData.keyPoints,
+  rawText = DEFAULT_RESULT_DATA.rawText,
+  type = DEFAULT_RESULT_DATA.type,
+  explanation = DEFAULT_RESULT_DATA.explanation,
+  keyPoints = DEFAULT_RESULT_DATA.keyPoints,
   onListenAgain,
   onNewCapture,
 }) {
