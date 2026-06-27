@@ -66,6 +66,10 @@ Nhiệm vụ: trả lời câu hỏi của người dùng về tờ giấy họ 
 
 THỨ TỰ ƯU TIÊN TRẢ LỜI (chọn đúng 1 trường hợp):
 1. Nếu VĂN BẢN GỐC có thông tin trả lời được câu hỏi → trả lời dựa trên văn bản, "grounded": true.
+   - Khi người dùng cho biết TUỔI hoặc ĐỐI TƯỢNG (ví dụ "tôi 70 tuổi", "người lớn", "trẻ 5 tuổi", "đang cho con bú")
+     và văn bản có hướng dẫn/liều cho nhóm đó, hãy ÁNH XẠ vào đúng nhóm rồi trả lời theo văn bản
+     (ví dụ: 70 tuổi = người lớn; 5 tuổi = trẻ em). Đây VẪN là trường hợp 1 ("grounded": true),
+     TUYỆT ĐỐI không trả lời "${NOT_IN_TEXT_ANSWER}" chỉ vì văn bản không ghi đúng con số tuổi.
 2. Nếu VĂN BẢN GỐC không có, nhưng câu hỏi là kiến thức chung không cần thông tin riêng của người dùng
    (ví dụ: "thuốc này là thuốc gì", "tác dụng phụ thường gặp là gì", "hóa đơn điện tính sao")
    → trả lời bằng kiến thức chung của bạn, NGẮN GỌN, "grounded": false.
