@@ -8,7 +8,7 @@
 /* ──────────── CSS Custom Properties ──────────── */
 :root {
   /* === Typography === */
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-size-body: 20px;
   --font-size-heading: 32px;
   --font-size-result: 24px;
@@ -19,28 +19,28 @@
   --line-height-body: 1.6;
   --line-height-heading: 1.3;
 
-  /* === Color Palette — Dark Mode (Default) === */
-  --color-bg: #0a0a14;
-  --color-surface: #16182a;
-  --color-surface-elevated: #1e2040;
-  --color-surface-hover: #252850;
-  --color-primary: #60a5fa;
-  --color-primary-hover: #93c5fd;
-  --color-primary-muted: rgba(96, 165, 250, 0.15);
-  --color-accent: #f97316;
-  --color-accent-hover: #fb923c;
-  --color-accent-muted: rgba(249, 115, 22, 0.15);
-  --color-text: #f1f5f9;
-  --color-text-secondary: #cbd5e1;
-  --color-text-muted: #94a3b8;
-  --color-success: #4ade80;
-  --color-success-muted: rgba(74, 222, 128, 0.15);
-  --color-error: #f87171;
-  --color-error-muted: rgba(248, 113, 113, 0.15);
-  --color-warning: #fbbf24;
-  --color-warning-muted: rgba(251, 191, 36, 0.15);
-  --color-border: rgba(241, 245, 249, 0.08);
-  --color-border-strong: rgba(241, 245, 249, 0.15);
+  /* === Color Palette — Medical Paper Light Mode === */
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f1f5f9;
+  --color-surface-hover: #e2e8f0;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-muted: rgba(37, 99, 235, 0.12);
+  --color-accent: #ea580c;
+  --color-accent-hover: #c2410c;
+  --color-accent-muted: rgba(234, 88, 12, 0.12);
+  --color-text: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-muted: #475569;
+  --color-success: #166534;
+  --color-success-muted: #dcfce7;
+  --color-error: #b91c1c;
+  --color-error-muted: #fee2e2;
+  --color-warning: #ea580c;
+  --color-warning-muted: #fff7ed;
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-border-strong: rgba(15, 23, 42, 0.18);
 
   /* === Spacing === */
   --space-xs: 8px;
@@ -56,20 +56,21 @@
   --radius-sm: 12px;
   --radius-md: 16px;
   --radius-lg: 24px;
+  --radius: var(--radius-md);
   --radius-full: 9999px;
   --max-width: 480px;
 
   /* === Shadows & Effects === */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-glow-primary: 0 0 20px rgba(96, 165, 250, 0.3);
-  --shadow-glow-accent: 0 0 20px rgba(249, 115, 22, 0.3);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 6px 18px rgba(15, 23, 42, 0.10);
+  --shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.12);
+  --shadow-glow-primary: 0 8px 20px rgba(37, 99, 235, 0.18);
+  --shadow-glow-accent: 0 8px 20px rgba(234, 88, 12, 0.16);
 
   /* === Glassmorphism === */
-  --glass-bg: rgba(22, 24, 42, 0.7);
+  --glass-bg: rgba(255, 255, 255, 0.88);
   --glass-backdrop: blur(16px);
-  --glass-border: 1px solid rgba(241, 245, 249, 0.08);
+  --glass-border: 1px solid rgba(15, 23, 42, 0.08);
 
   /* === Transitions === */
   --transition-fast: 150ms ease;
@@ -104,10 +105,8 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   overflow-x: hidden;
-  /* Subtle background gradient for premium feel */
   background-image:
-    radial-gradient(ellipse at 50% 0%, rgba(96, 165, 250, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 100%, rgba(249, 115, 22, 0.04) 0%, transparent 50%);
+    linear-gradient(180deg, #ffffff 0%, var(--color-bg) 42%, #eef2f7 100%);
   background-attachment: fixed;
 }
 
@@ -199,21 +198,21 @@ a:hover {
   transform: none;
 }
 
-/* Primary button — Accent Orange (CTA) */
+/* Primary button — Royal Blue medical action */
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-accent), #ea580c);
+  background: linear-gradient(135deg, var(--color-primary), #1d4ed8);
   color: #fff;
   border-color: transparent;
-  box-shadow: var(--shadow-glow-accent);
+  box-shadow: var(--shadow-glow-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-accent-hover), var(--color-accent));
-  box-shadow: 0 0 30px rgba(249, 115, 22, 0.4);
+  background: linear-gradient(135deg, #3b82f6, var(--color-primary));
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.24);
 }
 
 .btn-primary:active:not(:disabled) {
-  background: linear-gradient(135deg, #ea580c, #c2410c);
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
 }
 
 /* Secondary button — Surface with border */
@@ -297,14 +296,14 @@ a:hover {
   position: absolute;
   inset: -1px;
   border-radius: calc(var(--radius-lg) + 1px);
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.6), rgba(15, 23, 42, 0.08));
   z-index: -1;
-  opacity: 0.3;
+  opacity: 0.45;
   transition: opacity var(--transition-base);
 }
 
 .card-gradient:hover::before {
-  opacity: 0.5;
+  opacity: 0.65;
 }
 
 /* ──────────── Input / Textarea ──────────── */
@@ -348,27 +347,27 @@ a:hover {
 }
 
 .badge-medicine {
-  background: var(--color-success-muted);
-  color: var(--color-success);
-  border: 1px solid rgba(74, 222, 128, 0.2);
+  background: #dbeafe;
+  color: #1e3a8a;
+  border: 1px solid rgba(37, 99, 235, 0.22);
 }
 
 .badge-bill {
   background: var(--color-accent-muted);
-  color: var(--color-accent);
-  border: 1px solid rgba(249, 115, 22, 0.2);
+  color: #7c2d12;
+  border: 1px solid rgba(234, 88, 12, 0.24);
 }
 
 .badge-document {
   background: var(--color-primary-muted);
-  color: var(--color-primary);
-  border: 1px solid rgba(96, 165, 250, 0.2);
+  color: #1e3a8a;
+  border: 1px solid rgba(37, 99, 235, 0.22);
 }
 
 .badge-form {
-  background: var(--color-warning-muted);
-  color: var(--color-warning);
-  border: 1px solid rgba(251, 191, 36, 0.2);
+  background: #fef3c7;
+  color: #78350f;
+  border: 1px solid rgba(180, 83, 9, 0.24);
 }
 
 .badge-other {
@@ -426,10 +425,10 @@ a:hover {
 
 .accordion-body {
   padding: var(--space-md) var(--space-lg);
-  font-size: var(--font-size-small);
-  color: var(--color-text-muted);
-  line-height: 1.7;
-  background: var(--color-bg);
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  background: #f8fafc;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -437,26 +436,26 @@ a:hover {
 /* ──────────── Chat Bubbles ──────────── */
 .chat-bubble {
   max-width: 85%;
-  padding: var(--space-md) var(--space-lg);
+  padding: 16px 20px;
   font-size: var(--font-size-body);
-  line-height: var(--line-height-body);
+  line-height: 1.5;
   border-radius: var(--radius-lg);
   animation: fadeInUp var(--transition-base) ease;
 }
 
 .chat-bubble-user {
-  background: linear-gradient(135deg, var(--color-accent), #ea580c);
+  background: linear-gradient(135deg, var(--color-accent), #c2410c);
   color: #fff;
   margin-left: auto;
   border-bottom-right-radius: var(--space-xs);
 }
 
 .chat-bubble-assistant {
-  background: var(--color-surface-elevated);
+  background: var(--color-surface);
   color: var(--color-text);
   margin-right: auto;
   border-bottom-left-radius: var(--space-xs);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
 }
 
 /* ──────────── Disclaimer ──────────── */
@@ -466,11 +465,11 @@ a:hover {
   gap: var(--space-sm);
   padding: var(--space-md);
   font-size: var(--font-size-small);
-  color: var(--color-warning);
+  color: #7c2d12;
   background: var(--color-warning-muted);
-  border: 1px solid rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(234, 88, 12, 0.28);
   border-radius: var(--radius-md);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .disclaimer-icon {
@@ -497,7 +496,7 @@ a:hover {
   background: var(--color-primary-muted);
   border-radius: var(--radius-sm);
   border-left: 3px solid var(--color-primary);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .key-point-icon {
@@ -508,13 +507,18 @@ a:hover {
 
 /* ──────────── Layout Helpers ──────────── */
 .app-container {
+  width: 100%;
   max-width: var(--max-width);
   margin: 0 auto;
   padding: var(--space-md);
   min-height: 100vh;
   min-height: 100dvh;
+  position: relative;
+  background-color: var(--color-bg);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 .app-header {
@@ -525,10 +529,7 @@ a:hover {
 .app-header-title {
   font-size: var(--font-size-heading);
   font-weight: 800;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-text);
 }
 
 .app-header-subtitle {
@@ -542,6 +543,7 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+  padding-bottom: 96px;
   animation: fadeIn var(--transition-slow) ease;
 }
 
@@ -571,11 +573,13 @@ a:hover {
 /* ──────────── Image Preview ──────────── */
 .image-preview {
   width: 100%;
-  border-radius: var(--radius-lg);
-  border: 2px solid var(--color-border-strong);
-  object-fit: cover;
   max-height: 300px;
+  border-radius: var(--radius);
+  border: 2px solid var(--color-border-strong);
+  object-fit: contain;
+  background: #e2e8f0;
   box-shadow: var(--shadow-md);
+  display: block;
 }
 
 /* ──────────── Visually Hidden (Accessibility) ──────────── */
@@ -795,4 +799,15 @@ a:hover {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Ép buộc line-height dễ đọc cho toàn app */
+p, li, span, div {
+  line-height: 1.6;
+}
+
+/* Fix độ tương phản placeholder */
+::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1 !important;
 }

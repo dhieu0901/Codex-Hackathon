@@ -4,10 +4,10 @@ import { useEffect, useState, useRef } from 'react';
 
 /**
  * CameraCapture Component
- * 
+ *
  * Giao diện chụp ảnh văn bản dành cho người cao tuổi.
  * Sử dụng <input type="file" capture="environment"> để mở camera native.
- * 
+ *
  * @param {Object} props
  * @param {function} props.onCapture - Callback nhận File khi user bấm "Đọc Giúp Tôi".
  * Person C sẽ convert File thành data URL/base64 rồi gửi API body { image }.
@@ -16,8 +16,9 @@ import { useEffect, useState, useRef } from 'react';
 export default function CameraCapture({ onCapture, disabled = false }) {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const cameraInputRef = useRef(null);
-  const albumInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -32,19 +33,23 @@ export default function CameraCapture({ onCapture, disabled = false }) {
     if (!file) return;
 
     setSelectedFile(file);
+    setIsPickerOpen(false);
 
     // Tạo preview URL
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-    e.target.value = '';
   };
 
-  const handleCaptureTrigger = () => {
+  const handlePickerTrigger = () => {
+    setIsPickerOpen((current) => !current);
+  };
+
+  const handleCameraPick = () => {
     cameraInputRef.current?.click();
   };
 
-  const handleAlbumTrigger = () => {
-    albumInputRef.current?.click();
+  const handleGalleryPick = () => {
+    galleryInputRef.current?.click();
   };
 
   const handleReadRequest = () => {
@@ -57,14 +62,19 @@ export default function CameraCapture({ onCapture, disabled = false }) {
   const handleRetake = () => {
     setPreviewUrl(null);
     setSelectedFile(null);
+    setIsPickerOpen(false);
     // Reset input value để có thể chọn lại cùng file
-    if (cameraInputRef.current) cameraInputRef.current.value = '';
-    if (albumInputRef.current) albumInputRef.current.value = '';
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = '';
+    }
+    if (galleryInputRef.current) {
+      galleryInputRef.current.value = '';
+    }
   };
 
   return (
     <div className="camera-capture fade-in">
-      {/* Hidden file input — camera native */}
+      {/* Hidden file inputs — camera native + gallery upload */}
       <input
         ref={cameraInputRef}
         type="file"
@@ -73,17 +83,18 @@ export default function CameraCapture({ onCapture, disabled = false }) {
         onChange={handleFileChange}
         className="sr-only"
         id="camera-input"
-        aria-label="Chụp ảnh văn bản"
+        aria-label="Chụp ảnh trực tiếp"
         disabled={disabled}
       />
+
       <input
-        ref={albumInputRef}
+        ref={galleryInputRef}
         type="file"
         accept="image/*"
         onChange={handleFileChange}
         className="sr-only"
-        id="album-input"
-        aria-label="Chọn ảnh từ album"
+        id="gallery-input"
+        aria-label="Tải ảnh từ bộ sưu tập"
         disabled={disabled}
       />
 
@@ -95,36 +106,49 @@ export default function CameraCapture({ onCapture, disabled = false }) {
               <span className="camera-icon" role="img" aria-hidden="true">📷</span>
             </div>
             <p className="camera-hint">
-              Chụp ảnh tờ giấy bạn muốn đọc
+              Chụp ảnh thông tin bạn muốn đọc
             </p>
             <p className="camera-hint-sub">
               Nhãn thuốc · Hóa đơn · Giấy tờ
             </p>
           </div>
 
-          <div className="camera-actions">
-            <button
-              className="btn btn-primary btn-lg camera-capture-btn scale-in"
-              onClick={handleCaptureTrigger}
-              disabled={disabled}
-              id="btn-capture"
-              aria-label="Chụp ảnh văn bản"
-            >
-              <span className="btn-emoji" aria-hidden="true">📷</span>
-              CHỤP CHỮ
-            </button>
+          <button
+            className="btn btn-primary btn-lg camera-capture-btn scale-in"
+            onClick={handlePickerTrigger}
+            disabled={disabled}
+            id="btn-capture"
+            aria-label="Gửi ảnh để đọc thông tin"
+            aria-expanded={isPickerOpen}
+            aria-controls="image-source-options"
+            type="button"
+          >
+            <span className="btn-emoji" aria-hidden="true">📷</span>
+            GỬI ẢNH
+          </button>
 
-            <button
-              className="btn btn-secondary btn-lg camera-album-btn"
-              onClick={handleAlbumTrigger}
-              disabled={disabled}
-              id="btn-album"
-              aria-label="Chọn ảnh từ album"
-            >
-              <span className="btn-emoji" aria-hidden="true">🖼️</span>
-              CHỌN ẢNH
-            </button>
-          </div>
+          {isPickerOpen && (
+            <div className="image-source-options fade-in-up" id="image-source-options">
+              <button
+                className="btn btn-secondary image-source-btn"
+                onClick={handleCameraPick}
+                disabled={disabled}
+                type="button"
+              >
+                <span className="btn-emoji" aria-hidden="true">📷</span>
+                CHỤP ẢNH
+              </button>
+              <button
+                className="btn btn-secondary image-source-btn"
+                onClick={handleGalleryPick}
+                disabled={disabled}
+                type="button"
+              >
+                <span className="btn-emoji" aria-hidden="true">🖼️</span>
+                TẢI ẢNH LÊN
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         /* ═══ Trạng thái 2: Đã chụp — Preview ═══ */
@@ -141,7 +165,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
           </div>
 
           <p className="preview-prompt">
-            Bạn muốn tôi đọc giúp tờ giấy này không?
+            Bạn muốn tôi đọc giúp thông tin này không?
           </p>
 
           <div className="button-group">
@@ -151,6 +175,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
               disabled={disabled}
               id="btn-read"
               aria-label="Đọc giúp tôi"
+              type="button"
             >
               <span className="btn-emoji" aria-hidden="true">📖</span>
               ĐỌC GIÚP TÔI
@@ -161,10 +186,11 @@ export default function CameraCapture({ onCapture, disabled = false }) {
               onClick={handleRetake}
               disabled={disabled}
               id="btn-retake"
-              aria-label="Đổi ảnh"
+              aria-label="Chụp lại"
+              type="button"
             >
-              <span className="btn-emoji" aria-hidden="true">🔄</span>
-              ĐỔI ẢNH
+              <span className="btn-emoji" aria-hidden="true">📷</span>
+              CHỤP LẠI
             </button>
           </div>
         </div>
@@ -215,6 +241,7 @@ export default function CameraCapture({ onCapture, disabled = false }) {
           font-weight: 600;
           color: var(--color-text);
           text-align: center;
+          width: 100%;
         }
 
         .camera-hint-sub {
@@ -223,15 +250,20 @@ export default function CameraCapture({ onCapture, disabled = false }) {
           text-align: center;
         }
 
-        .camera-actions {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-sm);
+        .camera-capture-btn {
           margin-top: auto;
         }
 
-        .camera-capture-btn {
-          margin-top: 0;
+        .image-source-options {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: var(--space-sm);
+        }
+
+        .image-source-btn {
+          min-height: 64px;
+          font-size: var(--font-size-button);
+          justify-content: center;
         }
 
         /* ── Preview State ── */
@@ -245,6 +277,14 @@ export default function CameraCapture({ onCapture, disabled = false }) {
           position: relative;
           border-radius: var(--radius-lg);
           overflow: hidden;
+        }
+
+        .image-preview {
+          width: 100%;
+          max-height: 300px;
+          object-fit: contain;
+          border-radius: var(--radius);
+          background: #e2e8f0;
         }
 
         .preview-overlay {

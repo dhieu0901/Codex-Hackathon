@@ -59,11 +59,11 @@ export default function VoiceChat({
 
   return (
     <div className="voice-chat fade-in-up">
-      <h3 className="voice-chat-title">💬 Hỏi thêm về tờ giấy</h3>
+      <h3 className="voice-chat-title">💬 Hỏi thêm về thông tin</h3>
 
       {/* ═══ Chat Messages ═══ */}
       {messages.length > 0 && (
-        <div className="chat-messages" role="log" aria-label="Cuộc hội thoại">
+        <div className="message-list chat-messages" role="log" aria-label="Cuộc hội thoại">
           {messages.map((msg, index) => (
             <div
               key={index}
@@ -94,8 +94,20 @@ export default function VoiceChat({
       )}
 
       {/* ═══ Input Area ═══ */}
-      <div className="voice-chat-input-area">
-        {/* Nút Mic — cực to */}
+      <div className="chat-input-container">
+        <input
+          ref={inputRef}
+          type="text"
+          className="input voice-chat-input"
+          placeholder="Hoặc gõ câu hỏi ở đây..."
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={isProcessing}
+          id="input-question"
+          aria-label="Gõ câu hỏi"
+        />
+
         <button
           className={`btn btn-icon btn-mic ${isProcessing ? 'pulse recording' : ''}`}
           onClick={handleMicPress}
@@ -106,30 +118,15 @@ export default function VoiceChat({
           {isProcessing ? '⏹️' : '🎤'}
         </button>
 
-        {/* Text input fallback */}
-        <div className="text-input-row">
-          <input
-            ref={inputRef}
-            type="text"
-            className="input voice-chat-input"
-            placeholder="Hoặc gõ câu hỏi ở đây..."
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isProcessing}
-            id="input-question"
-            aria-label="Gõ câu hỏi"
-          />
-          <button
-            className="btn btn-primary btn-send"
-            onClick={handleSend}
-            disabled={!inputText.trim() || isProcessing}
-            id="btn-send"
-            aria-label="Gửi câu hỏi"
-          >
-            📨
-          </button>
-        </div>
+        <button
+          className="btn btn-primary btn-send"
+          onClick={handleSend}
+          disabled={!inputText.trim() || isProcessing}
+          id="btn-send"
+          aria-label="Gửi câu hỏi"
+        >
+          📨
+        </button>
       </div>
 
       <style jsx>{`
@@ -137,8 +134,9 @@ export default function VoiceChat({
           display: flex;
           flex-direction: column;
           gap: var(--space-md);
-          border-top: 1px solid var(--color-border-strong);
+          border-top: 1px solid #e2e8f0;
           padding-top: var(--space-lg);
+          margin: 0 calc(var(--space-md) * -1);
         }
 
         .voice-chat-title {
@@ -154,8 +152,14 @@ export default function VoiceChat({
           gap: var(--space-sm);
           max-height: 360px;
           overflow-y: auto;
-          padding: var(--space-sm) 0;
+          padding: var(--space-sm) var(--space-md) 80px;
           scroll-behavior: smooth;
+        }
+
+        .chat-bubble {
+          padding: 16px 20px;
+          font-size: var(--font-size-body);
+          line-height: 1.5;
         }
 
         .chat-thinking {
@@ -166,52 +170,77 @@ export default function VoiceChat({
           color: var(--color-text-muted);
         }
 
+        .message-list {
+          padding-bottom: 80px;
+        }
+
         /* ── Input Area ── */
-        .voice-chat-input-area {
+        .chat-input-container {
+          position: sticky;
+          bottom: 0;
+          z-index: 10;
           display: flex;
-          flex-direction: column;
           align-items: center;
-          gap: var(--space-md);
-          padding-top: var(--space-sm);
+          gap: 12px;
+          padding: 12px 16px;
+          background: var(--color-surface);
+          border-top: 1px solid #e2e8f0;
+        }
+
+        .chat-input-container .btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         /* ── Mic Button ── */
         .btn-mic {
-          background: linear-gradient(135deg, var(--color-error), #dc2626);
+          width: 52px;
+          height: 52px;
+          min-width: 52px;
+          min-height: 52px;
+          flex-shrink: 0;
+          border-radius: 50%;
+          background: linear-gradient(135deg, var(--color-primary), #1d4ed8);
           color: #fff;
-          border: 3px solid rgba(248, 113, 113, 0.3);
-          box-shadow: 0 0 20px rgba(248, 113, 113, 0.2);
-          font-size: 36px;
+          border: 3px solid rgba(37, 99, 235, 0.22);
+          box-shadow: 0 8px 20px rgba(37, 99, 235, 0.18);
+          font-size: 24px;
           transition: all var(--transition-fast);
         }
 
         .btn-mic:hover:not(:disabled) {
-          box-shadow: 0 0 30px rgba(248, 113, 113, 0.4);
+          box-shadow: 0 10px 24px rgba(37, 99, 235, 0.24);
         }
 
         .btn-mic.recording {
-          background: linear-gradient(135deg, #dc2626, #991b1b);
-          border-color: var(--color-error);
-        }
-
-        /* ── Text Input Row ── */
-        .text-input-row {
-          display: flex;
-          gap: var(--space-xs);
-          width: 100%;
+          background: linear-gradient(135deg, var(--color-accent), #c2410c);
+          border-color: rgba(234, 88, 12, 0.32);
         }
 
         .voice-chat-input {
           flex: 1;
-          min-height: var(--btn-min-height);
+          height: 52px;
+          min-height: 52px;
+          padding: 0 20px;
+          border: 1px solid #cbd5e1;
+          border-radius: 26px;
+        }
+
+        .voice-chat-input::placeholder {
+          color: #94a3b8;
+          opacity: 1;
         }
 
         .btn-send {
-          width: 56px;
-          min-height: var(--btn-min-height);
-          padding: 0;
-          font-size: 24px;
+          width: 52px;
+          height: 52px;
+          min-width: 52px;
+          min-height: 52px;
           flex-shrink: 0;
+          padding: 0;
+          border-radius: 50%;
+          font-size: 24px;
         }
       `}</style>
     </div>

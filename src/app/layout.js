@@ -1,9 +1,16 @@
+import { Inter } from 'next/font/google';
 import './globals.css';
+
+const inter = Inter({
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0a0a14',
+  themeColor: '#f8fafc',
 };
 
 export const metadata = {
@@ -16,14 +23,14 @@ export const metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'Soi Thuốc',
   },
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="vi" suppressHydrationWarning>
+    <html lang="vi" className={inter.variable} suppressHydrationWarning>
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />

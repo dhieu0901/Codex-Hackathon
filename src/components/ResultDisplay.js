@@ -43,6 +43,11 @@ export default function ResultDisplay({
 }) {
   const [isRawTextOpen, setIsRawTextOpen] = useState(false);
   const typeConfig = TYPE_CONFIG[type] || TYPE_CONFIG['khác'];
+  const visibleKeyPoints = Array.isArray(keyPoints)
+    ? keyPoints
+        .map((point) => (typeof point === 'string' ? point.trim() : String(point || '').trim()))
+        .filter(Boolean)
+    : [];
 
   const handleListenAgain = () => {
     if (onListenAgain) {
@@ -79,11 +84,11 @@ export default function ResultDisplay({
       </div>
 
       {/* ═══ Key Points — bullet points rõ ràng ═══ */}
-      {keyPoints && keyPoints.length > 0 && (
+      {keyPoints && keyPoints.length > 0 && visibleKeyPoints.length > 0 && (
         <div className="result-keypoints section-gap">
           <h3 className="result-section-title">📌 Ý quan trọng</h3>
-          <ul className="key-points stagger-children">
-            {keyPoints.map((point, index) => (
+          <ul className="key-points">
+            {visibleKeyPoints.map((point, index) => (
               <li key={index} className="key-point-item">
                 <span className="key-point-icon" aria-hidden="true">✅</span>
                 <span>{point}</span>
@@ -155,6 +160,7 @@ export default function ResultDisplay({
           display: flex;
           flex-direction: column;
           gap: var(--space-md);
+          padding-bottom: 96px;
         }
 
         .result-header {
@@ -186,6 +192,39 @@ export default function ResultDisplay({
           font-weight: 700;
           color: var(--color-text);
           margin-bottom: var(--space-sm);
+        }
+
+        .key-points {
+          list-style-type: none;
+          padding-left: 0;
+          margin: 0;
+          gap: var(--space-md);
+        }
+
+        .key-point-item {
+          margin: 0 0 12px;
+          border: 1px solid #bae6fd;
+          color: #0f172a;
+          font-weight: 500;
+          opacity: 1;
+        }
+
+        .key-point-item:last-child {
+          margin-bottom: 0;
+        }
+
+        .disclaimer {
+          background: var(--color-warning-muted);
+          color: #9a3412;
+          border-color: rgba(234, 88, 12, 0.32);
+          font-size: var(--font-size-body);
+          line-height: 1.6;
+        }
+
+        .accordion-body {
+          font-size: var(--font-size-body);
+          color: var(--color-text-secondary);
+          line-height: 1.6;
         }
       `}</style>
     </div>
