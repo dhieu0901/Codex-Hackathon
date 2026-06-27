@@ -1,0 +1,19 @@
+{
+  "name": "Soi Thuốc",
+  "short_name": "Soi Thuốc",
+  "description": "Soi nhãn thuốc, hóa đơn, giấy tờ — nghe đọc và hiểu ngay bằng tiếng Việt đơn giản. Dành cho người lớn tuổi.",
+  "lang": "vi",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a14",
+  "theme_color": "#0a0a14",
+  "categories": ["health", "utilities", "accessibility"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,35 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CameraCapture from '../components/CameraCapture';
 import ResultDisplay from '../components/ResultDisplay';
 import LoadingState from '../components/LoadingState';
 import ErrorMessage from '../components/ErrorMessage';
 import VoiceChat from '../components/VoiceChat';
-import { fileToDataUrl } from '../lib/imageUtils';
+import { compressImage } from '../lib/imageUtils';
+import { analyzeImage, askQuestion } from '../lib/api';
+import { speak, stopSpeaking, startListening } from '../lib/speech';
 
 const INITIAL_ERROR_MESSAGE = 'Xin lỗi, tôi chưa đọc được ảnh này. Bạn thử chụp lại rõ hơn nhé?';
-
-function normalizeUnderstandResult(data) {
-  return {
-    rawText: typeof data?.raw_text === 'string' ? data.raw_text : '',
-    type: typeof data?.type === 'string' ? data.type : 'khác',
-    explanation:
-      typeof data?.explanation === 'string' && data.explanation.trim()
-        ? data.explanation
-        : 'Tôi chưa đọc rõ nội dung trong ảnh. Bạn thử chụp lại gần và sáng hơn nhé.',
-    keyPoints: Array.isArray(data?.key_points) ? data.key_points : [],
-  };
-}
-
-async function readErrorMessage(response, fallbackMessage) {
-  try {
-    const data = await response.json();
-    return data?.error || fallbackMessage;
-  } catch {
-    return fallbackMessage;
-  }
-}
 
 export default function Home() {
   const [screen, setScreen] = useState('camera');
@@ -38,7 +19,15 @@ export default function Home() {
   const [chatMessages, setChatMessages] = useState([]);
   const [errorMessage, setErrorMessage] = useState(INITIAL_ERROR_MESSAGE);
   const [isAsking, setIsAsking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
 
+  // Tránh đọc 2 câu chồng nhau & giữ tham chiếu trả lời mới nhất.
+  const askingRef = useRef(false);
+
+  // Dừng đọc khi rời trang.
+  useEffect(() => () => stopSpeaking(), []);
+
+  // Chụp ảnh, nén, gọi GPT-4o Vision, hiện kết quả rồi tự đọc to (C01)
   const understandFile = async (file) => {
     if (!file) {
       setErrorMessage('Bạn hãy chụp hoặc chọn một ảnh trước nhé.');
@@ -48,24 +37,15 @@ export default function Home() {
 
     setLastFile(file);
     setScreen('loading');
-    setErrorMessage(INITIAL_ERROR_MESSAGE);
     setChatMessages([]);
+    stopSpeaking();
 
     try {
-      const image = await fileToDataUrl(file);
-      const response = await fetch('/api/understand', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image }),
-      });
-
-      if (!response.ok) {
-        throw new Error(await readErrorMessage(response, INITIAL_ERROR_MESSAGE));
-      }
-
-      const data = await response.json();
-      setResult(normalizeUnderstandResult(data));
+      const base64 = await compressImage(file);
+      const data = await analyzeImage(base64); // { rawText, type, explanation, keyPoints }
+      setResult(data);
       setScreen('result');
+      speak(data.explanation); // C01: tự đọc giải thích ngay
     } catch (error) {
       setErrorMessage(error?.message || INITIAL_ERROR_MESSAGE);
       setScreen('error');
@@ -77,6 +57,7 @@ export default function Home() {
   };
 
   const handleNewCapture = () => {
+    stopSpeaking();
     setScreen('camera');
     setLastFile(null);
     setResult(null);
@@ -88,54 +69,56 @@ export default function Home() {
     void understandFile(lastFile);
   };
 
+  // C01: bấm "Nghe lại" sẽ đọc lại phần giải thích.
   const handleListenAgain = () => {
-    console.log('[Page] Listen again:', result?.explanation || '');
+    if (result?.explanation) {
+      stopSpeaking();
+      speak(result.explanation);
+    }
   };
 
-  const handleSendMessage = async (text) => {
-    const question = text.trim();
-    if (!question || isAsking) return;
+  // Hỏi đáp grounded rồi đọc to câu trả lời (voice-first).
+  const sendQuestion = async (rawQuestion) => {
+    const question = (rawQuestion || '').trim();
+    if (!question || askingRef.current) return;
 
+    askingRef.current = true;
     setChatMessages((prev) => [...prev, { role: 'user', text: question }]);
     setIsAsking(true);
+    stopSpeaking();
 
     try {
-      const response = await fetch('/api/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question,
-          rawText: result?.rawText || '',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(await readErrorMessage(response, 'Tôi chưa trả lời được câu hỏi này.'));
-      }
-
-      const data = await response.json();
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          text: data?.answer || 'Tôi chưa trả lời được câu hỏi này. Bạn hỏi lại ngắn hơn nhé.',
-        },
-      ]);
+      const { answer } = await askQuestion(question, result?.rawText || '');
+      const text = answer || 'Tôi chưa trả lời được câu hỏi này. Bạn hỏi lại ngắn hơn nhé.';
+      setChatMessages((prev) => [...prev, { role: 'assistant', text }]);
+      speak(text);
     } catch (error) {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          text: error?.message || 'Có lỗi khi trả lời. Bạn thử hỏi lại giúp tôi nhé.',
-        },
-      ]);
+      const text = error?.message || 'Có lỗi khi trả lời. Bạn thử hỏi lại giúp tôi nhé.';
+      setChatMessages((prev) => [...prev, { role: 'assistant', text }]);
     } finally {
+      askingRef.current = false;
       setIsAsking(false);
     }
   };
 
-  const handleMicPress = () => {
-    console.log('[Page] Mic pressed - Person C will wire speech.startListening() here');
+  const handleSendMessage = (text) => {
+    void sendQuestion(text);
+  };
+
+  // C02: bấm mic để nghe câu hỏi tiếng Việt rồi gửi đi. Lỗi thì đọc to để người già nghe.
+  const handleMicPress = async () => {
+    if (isAsking || isListening) return;
+
+    stopSpeaking();
+    setIsListening(true);
+    try {
+      const text = await startListening();
+      setIsListening(false);
+      if (text) await sendQuestion(text);
+    } catch (error) {
+      setIsListening(false);
+      speak(error?.message || 'Tôi chưa nghe rõ, bạn thử lại nhé.');
+    }
   };
 
   return (
@@ -164,7 +147,7 @@ export default function Home() {
           />
           <VoiceChat
             messages={chatMessages}
-            isProcessing={isAsking}
+            isProcessing={isAsking || isListening}
             onSendMessage={handleSendMessage}
             onMicPress={handleMicPress}
           />
