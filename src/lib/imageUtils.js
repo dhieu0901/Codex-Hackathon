@@ -2,14 +2,14 @@
 // DG-C03 — Nén ảnh chụp trước khi gửi API: giảm dung lượng để upload nhanh,
 // nhưng giữ đủ nét cho OCR, và xoay đúng hướng (ảnh iOS hay bị xoay theo EXIF).
 //
-// Hợp đồng: compressImage(file, maxWidth=1280, quality=0.85) -> Promise<string> (data URL JPEG)
+// Hợp đồng: compressImage(file, maxWidth=1120, quality=0.78) -> Promise<string> (data URL JPEG)
 
-const DEFAULT_MAX_WIDTH = 1280;
-const DEFAULT_QUALITY = 0.85;
-const QUALITY_FLOOR = 0.6; // không nén thấp hơn để chữ không vỡ, OCR còn đọc được
-const TARGET_BYTES = 900_000; // ngưỡng mềm cho độ dài data URL (~900KB)
-const MIN_WIDTH = 800; // không thu nhỏ quá mức này (giữ độ nét chữ)
-const MAX_PASSES = 6;
+const DEFAULT_MAX_WIDTH = 1120;
+const DEFAULT_QUALITY = 0.78;
+const QUALITY_FLOOR = 0.58; // không nén thấp hơn để chữ không vỡ, OCR còn đọc được
+const TARGET_BYTES = 520_000; // ngưỡng mềm cho dung lượng JPEG trước khi encode base64
+const MIN_WIDTH = 880; // không thu nhỏ quá mức này (giữ độ nét chữ)
+const MAX_PASSES = 7;
 
 function assertBrowser() {
   if (typeof document === "undefined" || typeof window === "undefined") {
@@ -46,14 +46,59 @@ function sourceSize(src) {
   };
 }
 
-function renderJpeg(src, width, height, quality) {
+function renderCanvas(src, width, height) {
   const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, width);
-  canvas.height = Math.max(1, height);
+  canvas.width = Math.max(1, Math.round(width));
+  canvas.height = Math.max(1, Math.round(height));
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Trình duyệt không hỗ trợ xử lý ảnh.");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", quality);
+  return canvas;
+}
+
+function dataUrlToBlob(dataUrl) {
+  const [header, payload] = String(dataUrl || "").split(",");
+  const mime = /data:([^;]+)/.exec(header || "")?.[1] || "image/jpeg";
+  const binary = atob(payload || "");
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mime });
+}
+
+function canvasToBlob(canvas, quality) {
+  if (!canvas.toBlob) {
+    return Promise.resolve(dataUrlToBlob(canvas.toDataURL("image/jpeg", quality)));
+  }
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Không nén được ảnh. Bạn thử chụp lại nhé."));
+      },
+      "image/jpeg",
+      quality
+    );
+  });
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("Không đọc được ảnh đã nén."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function renderJpegBlob(src, width, height, quality) {
+  return canvasToBlob(renderCanvas(src, width, height), quality);
 }
 
 /**
@@ -80,21 +125,21 @@ export async function compressImage(file, maxWidth = DEFAULT_MAX_WIDTH, quality 
 
     let scale = Math.min(1, maxWidth / w); // chỉ thu nhỏ
     let q = quality;
-    let dataUrl = renderJpeg(source, w * scale, h * scale, q);
+    let blob = await renderJpegBlob(source, w * scale, h * scale, q);
 
     // Nếu còn quá to: giảm chất lượng tới sàn trước, rồi mới thu nhỏ kích thước.
-    for (let pass = 0; pass < MAX_PASSES && dataUrl.length > TARGET_BYTES; pass++) {
+    for (let pass = 0; pass < MAX_PASSES && blob.size > TARGET_BYTES; pass++) {
       if (q > QUALITY_FLOOR) {
         q = Math.max(QUALITY_FLOOR, q - 0.1);
       } else if (w * scale > MIN_WIDTH) {
-        scale *= 0.8;
+        scale *= 0.85;
       } else {
         break; // đã ở mức nhỏ nhất chấp nhận được
       }
-      dataUrl = renderJpeg(source, w * scale, h * scale, q);
+      blob = await renderJpegBlob(source, w * scale, h * scale, q);
     }
 
-    return dataUrl;
+    return blobToDataUrl(blob);
   } finally {
     if (typeof source.close === "function") source.close(); // giải phóng ImageBitmap
   }

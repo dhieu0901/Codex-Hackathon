@@ -16,7 +16,8 @@ import { useEffect, useState, useRef } from 'react';
 export default function CameraCapture({ onCapture, disabled = false }) {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const albumInputRef = useRef(null);
 
   useEffect(() => {
     return () => {
@@ -35,10 +36,15 @@ export default function CameraCapture({ onCapture, disabled = false }) {
     // Tạo preview URL
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
+    e.target.value = '';
   };
 
   const handleCaptureTrigger = () => {
-    fileInputRef.current?.click();
+    cameraInputRef.current?.click();
+  };
+
+  const handleAlbumTrigger = () => {
+    albumInputRef.current?.click();
   };
 
   const handleReadRequest = () => {
@@ -52,16 +58,15 @@ export default function CameraCapture({ onCapture, disabled = false }) {
     setPreviewUrl(null);
     setSelectedFile(null);
     // Reset input value để có thể chọn lại cùng file
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (albumInputRef.current) albumInputRef.current.value = '';
   };
 
   return (
     <div className="camera-capture fade-in">
       {/* Hidden file input — camera native */}
       <input
-        ref={fileInputRef}
+        ref={cameraInputRef}
         type="file"
         accept="image/*"
         capture="environment"
@@ -69,6 +74,16 @@ export default function CameraCapture({ onCapture, disabled = false }) {
         className="sr-only"
         id="camera-input"
         aria-label="Chụp ảnh văn bản"
+        disabled={disabled}
+      />
+      <input
+        ref={albumInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="sr-only"
+        id="album-input"
+        aria-label="Chọn ảnh từ album"
         disabled={disabled}
       />
 
@@ -87,16 +102,29 @@ export default function CameraCapture({ onCapture, disabled = false }) {
             </p>
           </div>
 
-          <button
-            className="btn btn-primary btn-lg camera-capture-btn scale-in"
-            onClick={handleCaptureTrigger}
-            disabled={disabled}
-            id="btn-capture"
-            aria-label="Chụp ảnh văn bản"
-          >
-            <span className="btn-emoji" aria-hidden="true">📷</span>
-            CHỤP CHỮ
-          </button>
+          <div className="camera-actions">
+            <button
+              className="btn btn-primary btn-lg camera-capture-btn scale-in"
+              onClick={handleCaptureTrigger}
+              disabled={disabled}
+              id="btn-capture"
+              aria-label="Chụp ảnh văn bản"
+            >
+              <span className="btn-emoji" aria-hidden="true">📷</span>
+              CHỤP CHỮ
+            </button>
+
+            <button
+              className="btn btn-secondary btn-lg camera-album-btn"
+              onClick={handleAlbumTrigger}
+              disabled={disabled}
+              id="btn-album"
+              aria-label="Chọn ảnh từ album"
+            >
+              <span className="btn-emoji" aria-hidden="true">🖼️</span>
+              CHỌN ẢNH
+            </button>
+          </div>
         </div>
       ) : (
         /* ═══ Trạng thái 2: Đã chụp — Preview ═══ */
@@ -133,10 +161,10 @@ export default function CameraCapture({ onCapture, disabled = false }) {
               onClick={handleRetake}
               disabled={disabled}
               id="btn-retake"
-              aria-label="Chụp lại"
+              aria-label="Đổi ảnh"
             >
-              <span className="btn-emoji" aria-hidden="true">📷</span>
-              CHỤP LẠI
+              <span className="btn-emoji" aria-hidden="true">🔄</span>
+              ĐỔI ẢNH
             </button>
           </div>
         </div>
@@ -195,8 +223,15 @@ export default function CameraCapture({ onCapture, disabled = false }) {
           text-align: center;
         }
 
-        .camera-capture-btn {
+        .camera-actions {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-sm);
           margin-top: auto;
+        }
+
+        .camera-capture-btn {
+          margin-top: 0;
         }
 
         /* ── Preview State ── */

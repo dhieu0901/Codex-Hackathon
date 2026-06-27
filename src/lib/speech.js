@@ -86,9 +86,52 @@ function chunkText(text) {
 }
 
 let currentAudio = null; // phần tử Audio đang phát giọng OpenAI
+let currentAudioUrl = null;
+let speechRunId = 0;
+let audioContext = null;
+
+function isMobileLikeDevice() {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || navigator.maxTouchPoints > 0;
+}
+
+function shouldPreferWebSpeech() {
+  if (typeof navigator === "undefined") return false;
+  return isMobileLikeDevice() || !!navigator.connection?.saveData;
+}
+
+export function prepareSpeechPlayback() {
+  if (typeof window === "undefined") return;
+
+  try {
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextCtor) {
+      audioContext = audioContext || new AudioContextCtor();
+      if (audioContext.state === "suspended") {
+        audioContext.resume().catch(() => {});
+      }
+    }
+  } catch {
+    /* noop */
+  }
+
+  if (!isSupported()) return;
+
+  try {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(" ");
+    utterance.lang = "vi-VN";
+    utterance.volume = 0;
+    synth.speak(utterance);
+  } catch {
+    /* noop */
+  }
+}
 
 /** Dừng ngay mọi thứ đang đọc (cả giọng OpenAI lẫn Web Speech). */
 export function stopSpeaking() {
+  speechRunId += 1;
   if (currentAudio) {
     try {
       currentAudio.pause();
@@ -97,6 +140,10 @@ export function stopSpeaking() {
     }
     currentAudio = null;
   }
+  if (currentAudioUrl) {
+    URL.revokeObjectURL(currentAudioUrl);
+    currentAudioUrl = null;
+  }
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
     window.speechSynthesis.cancel();
   }
@@ -104,7 +151,7 @@ export function stopSpeaking() {
 
 // Giọng "xịn": gọi /api/tts (OpenAI gpt-4o-mini-tts) rồi phát mp3.
 // Trả về true nếu phát xong, false nếu cần fallback sang Web Speech.
-function speakWithOpenAI(text) {
+function speakWithOpenAI(text, runId) {
   return fetch("/api/tts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -113,17 +160,24 @@ function speakWithOpenAI(text) {
     .then((res) => {
       if (!res.ok) return false;
       return res.blob().then((blob) => {
+        if (runId !== speechRunId) return false;
         const url = URL.createObjectURL(blob);
         return new Promise((resolve) => {
           const audio = new Audio(url);
+          audio.preload = "auto";
           currentAudio = audio;
+          currentAudioUrl = url;
           const finish = (ok) => {
-            URL.revokeObjectURL(url);
             if (currentAudio === audio) currentAudio = null;
+            if (currentAudioUrl === url) {
+              URL.revokeObjectURL(url);
+              currentAudioUrl = null;
+            }
             resolve(ok);
           };
           audio.onended = () => finish(true);
           audio.onerror = () => finish(false);
+          if (runId !== speechRunId) return finish(false);
           audio.play().catch(() => finish(false));
         });
       });
@@ -132,7 +186,7 @@ function speakWithOpenAI(text) {
 }
 
 // Giọng dự phòng: Web Speech vi-VN, xếp các câu liền mạch để không bị lên xuống.
-function speakWithWebSpeech(text) {
+function speakWithWebSpeech(text, runId) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return Promise.resolve();
   const chunks = chunkText(text);
   if (!chunks.length) return Promise.resolve();
@@ -141,18 +195,24 @@ function speakWithWebSpeech(text) {
   synth.cancel();
 
   return ensureVoices().then((voices) => {
+    if (runId !== speechRunId) return undefined;
     const voice = pickVietnameseVoice(voices);
     return new Promise((resolve) => {
       let remaining = chunks.length;
       let finished = false;
-      const finishOne = () => {
-        remaining -= 1;
-        if (remaining <= 0 && !finished) {
+      const finishAll = () => {
+        if (!finished) {
           finished = true;
           resolve();
         }
       };
+      const finishOne = () => {
+        if (runId !== speechRunId) return finishAll();
+        remaining -= 1;
+        if (remaining <= 0) finishAll();
+      };
       chunks.forEach((chunk) => {
+        if (runId !== speechRunId) return;
         const u = new SpeechSynthesisUtterance(chunk);
         u.lang = "vi-VN";
         if (voice) u.voice = voice;
@@ -168,6 +228,7 @@ function speakWithWebSpeech(text) {
         };
         synth.speak(u);
       });
+      if (runId !== speechRunId) finishAll();
     });
   });
 }
@@ -180,8 +241,18 @@ export function speak(text) {
   if (typeof window === "undefined") return Promise.resolve();
   const clean = String(text || "").trim();
   if (!clean) return Promise.resolve();
+  prepareSpeechPlayback();
   stopSpeaking();
-  return speakWithOpenAI(clean).then((ok) => (ok ? undefined : speakWithWebSpeech(clean)));
+  const runId = speechRunId;
+
+  if (shouldPreferWebSpeech() && isSupported()) {
+    return speakWithWebSpeech(clean, runId);
+  }
+
+  return speakWithOpenAI(clean, runId).then((ok) => {
+    if (ok || runId !== speechRunId) return undefined;
+    return speakWithWebSpeech(clean, runId);
+  });
 }
 
 // ===== DG-C02: STT — nhận giọng nói tiếng Việt (Web Speech Recognition) =====
