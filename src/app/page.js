@@ -8,7 +8,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import VoiceChat from '../components/VoiceChat';
 import { compressImage } from '../lib/imageUtils';
 import { analyzeImage, askQuestion } from '../lib/api';
-import { speak, stopSpeaking, startListening } from '../lib/speech';
+import { speak, stopSpeaking, startListening, prepareSpeechPlayback } from '../lib/speech';
 
 const INITIAL_ERROR_MESSAGE = 'Xin lỗi, tôi chưa đọc được ảnh này. Bạn thử chụp lại rõ hơn nhé?';
 
@@ -53,6 +53,7 @@ export default function Home() {
   };
 
   const handleCapture = (file) => {
+    prepareSpeechPlayback();
     void understandFile(file);
   };
 
@@ -66,12 +67,14 @@ export default function Home() {
   };
 
   const handleRetry = () => {
+    prepareSpeechPlayback();
     void understandFile(lastFile);
   };
 
   // C01: bấm "Nghe lại" sẽ đọc lại phần giải thích.
   const handleListenAgain = () => {
     if (result?.explanation) {
+      prepareSpeechPlayback();
       stopSpeaking();
       speak(result.explanation);
     }
@@ -95,6 +98,7 @@ export default function Home() {
     } catch (error) {
       const text = error?.message || 'Có lỗi khi trả lời. Bạn thử hỏi lại giúp tôi nhé.';
       setChatMessages((prev) => [...prev, { role: 'assistant', text }]);
+      speak(text);
     } finally {
       askingRef.current = false;
       setIsAsking(false);
@@ -102,6 +106,7 @@ export default function Home() {
   };
 
   const handleSendMessage = (text) => {
+    prepareSpeechPlayback();
     void sendQuestion(text);
   };
 
@@ -109,6 +114,7 @@ export default function Home() {
   const handleMicPress = async () => {
     if (isAsking || isListening) return;
 
+    prepareSpeechPlayback();
     stopSpeaking();
     setIsListening(true);
     try {
