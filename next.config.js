@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Tối ưu cho mobile-first app
-  reactStrictMode: true,
+  /* config options here */
 };
 
 module.exports = nextConfig;

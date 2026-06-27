@@ -1,22 +1,21 @@
 {
   "name": "doc-giup",
-  "version": "1.0.0",
-  "description": "Đọc Giúp — Trợ lý AI đọc hiểu văn bản cho người cao tuổi Việt Nam",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint"
   },
   "dependencies": {
-    "next": "^14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "openai": "^4.50.0"
+    "next": "16.2.9",
+    "openai": "^4.0.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.0"
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9"
   }
 }
